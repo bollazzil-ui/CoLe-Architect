@@ -5,9 +5,13 @@ import { Button } from './components/Button';
 import { LandingPage } from './views/LandingPage';
 import { Generator } from './views/Generator';
 import { Tracker } from './views/Tracker';
+import { supabase } from './lib/supabaseClient';
+import { Auth } from './components/Auth';
+import { Session } from '@supabase/supabase-js';
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
   const [activeTab, setActiveTab] = useState<'generate' | 'applications'>('generate');
   
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -25,15 +29,28 @@ const App: React.FC = () => {
   const [result, setResult] = useState<CoverLetterResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Auth Effect
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Load from local storage
   useEffect(() => {
     const savedProfiles = localStorage.getItem('cla_profiles');
     const savedApps = localStorage.getItem('cla_applications');
-    const savedLogin = localStorage.getItem('cla_isLoggedIn');
 
     if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
     if (savedApps) setApplications(JSON.parse(savedApps));
-    if (savedLogin) setIsLoggedIn(JSON.parse(savedLogin));
     
     const parsedProfiles = savedProfiles ? JSON.parse(savedProfiles) : [];
     if (parsedProfiles.length > 0 && !selectedProfileId) setSelectedProfileId(parsedProfiles[0].id);
@@ -47,10 +64,6 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('cla_applications', JSON.stringify(applications));
   }, [applications]);
-
-  useEffect(() => {
-    localStorage.setItem('cla_isLoggedIn', JSON.stringify(isLoggedIn));
-  }, [isLoggedIn]);
 
   const activeProfile = profiles.find(p => p.id === selectedProfileId);
 
@@ -139,8 +152,23 @@ const App: React.FC = () => {
     }
   };
 
-  if (!isLoggedIn) {
-    return <LandingPage onGetStarted={() => setIsLoggedIn(true)} />;
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setShowAuth(false);
+  };
+
+  if (!session) {
+    if (showAuth) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+                <div className="w-full max-w-md mb-4">
+                    <Button variant="ghost" onClick={() => setShowAuth(false)}>Back to Home</Button>
+                </div>
+                <Auth onSuccess={() => {}} />
+            </div>
+        )
+    }
+    return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
   return (
@@ -148,7 +176,7 @@ const App: React.FC = () => {
       {/* App Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setIsLoggedIn(false)}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('generate')}>
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-200">
               <i className="fas fa-file-signature text-sm"></i>
             </div>
@@ -173,7 +201,8 @@ const App: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" className="text-xs" onClick={() => setIsLoggedIn(false)}>Log Out</Button>
+            <span className="text-xs text-gray-500 hidden sm:inline">{session.user.email}</span>
+            <Button variant="ghost" className="text-xs" onClick={handleSignOut}>Log Out</Button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 border-2 border-white shadow-sm ring-2 ring-blue-50"></div>
           </div>
         </div>
