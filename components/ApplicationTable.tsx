@@ -3,14 +3,14 @@ import React from 'react';
 import { ApplicationRecord, ApplicationStatus } from '../types';
 import { Button } from './Button';
 
-interface ApplicationTrackerProps {
+interface ApplicationTableProps {
   applications: ApplicationRecord[];
   onUpdateStatus: (id: string, status: ApplicationStatus) => void;
   onDelete: (id: string) => void;
   onViewDetails: (app: ApplicationRecord) => void;
 }
 
-export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({ 
+export const ApplicationTable: React.FC<ApplicationTableProps> = ({
   applications, 
   onUpdateStatus, 
   onDelete,
