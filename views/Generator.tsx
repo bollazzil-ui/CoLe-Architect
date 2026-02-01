@@ -3,6 +3,7 @@ import { UserProfile, JobDetails, CoverLetterResponse } from '../types';
 import { Button } from '../components/Button';
 import { ProfileEditor } from '../components/ProfileEditor';
 import { ProfileSidebar } from '../components/ProfileSidebar';
+import { downloadDocx } from '../utils/docGenerator';
 
 interface GeneratorProps {
   // Sidebar props
@@ -139,6 +140,18 @@ export const Generator: React.FC<GeneratorProps> = ({
                 <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-lg relative font-serif">
                   <div className="absolute top-4 right-4 flex gap-2">
                     <Button variant="ghost" className="h-8 py-0 px-3 border border-gray-100" onClick={() => copyToClipboard(result.content)} icon="fas fa-copy">Copy</Button>
+                    <Button
+                      variant="secondary"
+                      className="h-8 py-0 px-3 border border-gray-100 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                      onClick={() => downloadDocx({
+                        content: result.content,
+                        jobTitle: jobDetails?.title,
+                        company: jobDetails?.company
+                      })}
+                      icon="fas fa-file-word"
+                    >
+                      Word
+                    </Button>
                     <Button variant="primary" className="h-8 py-0 bg-green-600 hover:bg-green-700 border-none shadow-md shadow-green-100" onClick={onSaveToTracker} icon="fas fa-save">Save & Track</Button>
                   </div>
                   <h3 className="text-xs font-bold text-gray-400 uppercase mb-8 flex items-center gap-2 tracking-widest">
