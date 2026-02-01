@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { ApplicationRecord, ApplicationStatus } from '../types';
-import { Button } from './Button';
 
 interface ApplicationTableProps {
   applications: ApplicationRecord[];
