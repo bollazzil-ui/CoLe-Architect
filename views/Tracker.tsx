@@ -15,10 +15,12 @@ export const Tracker: React.FC<TrackerProps> = ({
   onDelete
 }) => {
   const [viewingApp, setViewingApp] = useState<ApplicationRecord | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -41,7 +43,7 @@ export const Tracker: React.FC<TrackerProps> = ({
           </div>
           <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-lg relative font-serif">
              <div className="absolute top-4 right-4">
-               <Button variant="secondary" onClick={() => copyToClipboard(viewingApp.coverLetter)} icon="fas fa-copy">Copy Text</Button>
+               <Button variant="secondary" onClick={() => copyToClipboard(viewingApp.coverLetter)} icon={copied ? "fas fa-check" : "fas fa-copy"}>{copied ? "Copied!" : "Copy Text"}</Button>
              </div>
              <div className="whitespace-pre-wrap text-lg leading-relaxed">{viewingApp.coverLetter}</div>
           </div>
